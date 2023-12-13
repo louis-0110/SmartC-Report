@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@iconify-json/bi": "^1.1.21",
+    "@iconify-json/flat-color-icons": "^1.1.10",
     "@iconify-json/line-md": "^1.1.33",
+    "@iconify-json/logos": "^1.1.41",
     "@tauri-apps/api": "^1.5.1",
     "@types/node": "^20.10.4",
     "@unocss/reset": "^0.58.0",

@@ -107,14 +107,12 @@ async function get_ai_log() {
   logs.value = await savePath(pathList.value, `{${dateTime.value[0]}}:{${dateTime.value[1]}}`);
   const res = await getAiContent(logs.value);
   ai_result.value = res;
-  console.log(res);
   isLoading.value = false;
 }
 
 const onDeletePath = (p: string) => {
-  console.log(p)
-  pathList.value = pathList.value.filter((e) => e !== p);
-  writeTextFile('conf/app.conf', pathList.value.join('\n'), {
+  pathList.value = pathList.value.filter((e) => e !== p).map(item => item + '\n');
+  writeTextFile('conf/app.conf', pathList.value.join(), {
     dir: BaseDirectory.AppConfig,
   })
 }

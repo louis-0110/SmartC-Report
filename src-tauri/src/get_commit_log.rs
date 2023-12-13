@@ -1,9 +1,11 @@
 // use chrono::{DateTime, Duration, Local};
-use crate::parser_xml::parser;
+use crate::{parser_xml::parser, read_file::read_conf};
 use regex::Regex;
 use std::{process::Command, thread};
 
 pub fn get_log(path: Vec<String>, current_date: String) -> Vec<String> {
+    let a = read_conf();
+    println!("{:?}", a);
     // let local: DateTime<Local> = Local::now();
     // let tomorrow = local + Duration::days(1);
     // let current_date = format!(
