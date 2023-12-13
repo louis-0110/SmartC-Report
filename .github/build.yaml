@@ -1,8 +1,8 @@
-name: Greeting from Mona
+name: Build Tarui App For Win/Mac
 on:
   push:
-    branches:
-      - release
+      tags:
+      - 'v*.*.*'
 jobs:
   publish-tauri:
     permissions:
