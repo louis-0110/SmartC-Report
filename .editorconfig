@@ -1,0 +1,11 @@
+
+[*]
+end_of_line = lf
+charset = utf-8
+editor.defaultFormatter = "esbenp.prettier-vscode"
+quote_type = "single"
+
+# 如果需要配置其他格式化选项，可以添加下面的设置
+[vue]
+editor.defaultFormatter = "octref.volar"
+quote_type = "single"
