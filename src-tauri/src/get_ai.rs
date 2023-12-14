@@ -3,6 +3,8 @@ use std::error::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+use crate::read_file::read_conf;
+
 #[derive(Serialize, Deserialize, Debug)]
 struct Auth {
     refresh_token: String,
@@ -32,8 +34,9 @@ struct AiResponse {
 #[tokio::main]
 pub async fn get_ai_text(c: String) -> Result<String, Box<dyn Error>> {
     let client = reqwest::Client::new();
-    let resp = client.post("https://aip.baidubce.com/oauth/2.0/token?client_id=Wq2mGzgQX9Q13f2tg1gZtQyy&client_secret=zuxcm9DtemprEg8rf2FzTgLyNG2KZSDf&grant_type=client_credentials")
-        .send().await?;
+    let conf = read_conf();
+    let path: String = format!("https://aip.baidubce.com/oauth/2.0/token?client_id={}&client_secret={}&grant_type=client_credentials",conf.api_key,conf.secret_key);
+    let resp = client.post(path).send().await?;
     let value = resp.text().await?;
     let obj = serde_json::from_str::<Auth>(&value)?;
     let text = get_ai(obj.access_token.as_str(), c).await?;
