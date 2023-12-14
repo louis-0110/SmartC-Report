@@ -1,4 +1,3 @@
-import { VALUE_SPLIT } from 'ant-design-vue/es/vc-cascader/utils/commonUtil';
 import { readonly, ref } from 'vue';
 
 interface Store {
