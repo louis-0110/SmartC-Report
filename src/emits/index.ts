@@ -4,7 +4,6 @@ export async function savePath(
   p: string[],
   d: [string, string]
 ): Promise<string[]> {
-  debugger;
   return await invoke('save_path', { path: p, currentDate: d });
 }
 

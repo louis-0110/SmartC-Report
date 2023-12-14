@@ -22,6 +22,5 @@ pub fn parser(value: &str) -> Vec<String> {
         }
         buf.clear();
     }
-    println!("{:?}", txt);
     txt
 }

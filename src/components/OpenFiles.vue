@@ -25,17 +25,16 @@
 
 <script setup lang="ts">
 
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
 import { getAiContent, savePath } from '@/emits/index';
 
 import { RangePicker } from 'ant-design-vue'
 import { message } from 'ant-design-vue';
+import { useStore } from '@/store';
 
 const logs = ref<string[]>([]);
 const ai_result = ref('');
 const dateTime = ref<[string, string]>(['', ''])
-
-const pathList = inject('pathList', [])
 
 const onConfirmDate = () => {
   message.info('日期选择完成');
@@ -47,7 +46,9 @@ const isLoadingReprot = ref(false);
 
 async function get_ai_log() {
   isLoadingLog.value = true;
-  logs.value = await savePath(pathList, dateTime.value);
+  let pathList = useStore().value.pathList
+  logs.value = await savePath(pathList.map(item => item), dateTime.value);
+  console.log(logs.value)
   isLoadingLog.value = false;
 }
 

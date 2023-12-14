@@ -5,10 +5,11 @@ import { ConfigProvider, Modal } from 'ant-design-vue'
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import { theme } from 'ant-design-vue';
-import { computed, ref, provide } from 'vue';
+import { computed, ref } from 'vue';
 import Setting from './components/Setting.vue';
 import { getPathList } from './utils';
 import { BaseDirectory, createDir, writeTextFile } from '@tauri-apps/api/fs';
+import { useStoreSetItem } from './store';
 
 dayjs.locale('zh-cn');
 
@@ -17,27 +18,25 @@ let algorithm = computed(() => isDarkMode.value ? theme.darkAlgorithm : theme.de
 
 const openSetting = ref(false)
 const onOpend = () => { openSetting.value = !openSetting.value }
-const pathList = ref<string[]>([]);
-provide('pathList', pathList);
 
-// 初始化配置文件
-;(async () => {
-  try {
-    pathList.value = await getPathList();
-  } catch (_) {
-    await createDir('conf', {
-      dir: BaseDirectory.AppData,
-      recursive: true,
-    });
 
-    await writeTextFile('conf/app.conf', '', {
-      dir: BaseDirectory.AppConfig,
-      append: true,
-    });
-  }
-})();
+  // 初始化配置文件
+  ; (async () => {
+    try {
+      const pArr = await getPathList();
+      useStoreSetItem('pathList', pArr);
+    } catch (_) {
+      await createDir('conf', {
+        dir: BaseDirectory.AppData,
+        recursive: true,
+      });
 
-// getPathList();
+      await writeTextFile('conf/app.conf', '', {
+        dir: BaseDirectory.AppConfig,
+        append: true,
+      });
+    }
+  })();
 </script>
 
 <template>
@@ -48,8 +47,8 @@ provide('pathList', pathList);
       <OpenFiles />
       <i i-line-md-close-to-menu-transition class="absolute right-4 top-1 text-20px" @click="onOpend" />
 
-      <Modal class="bg-white pb-0" v-model:open="openSetting" width="100%" wrap-class-name="full-modal" :closable="false" :footer="null"
-        @ok="onOpend">
+      <Modal class="bg-white pb-0" v-model:open="openSetting" width="100%" wrap-class-name="full-modal" :closable="false"
+        :footer="null" @ok="onOpend">
         <Setting />
       </Modal>
     </div>

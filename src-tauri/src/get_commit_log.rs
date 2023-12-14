@@ -9,15 +9,11 @@ use std::{
 };
 
 pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
-    println!("{:?}",current_date);
     let settings = read_conf();
     // svn log --xml <PATH> -r {2023-11-07}:{2023-12-10}'
     let receiver = thread::spawn(move || {
         let logs = path.iter().map(|p| match is_git_or_svn(p) {
-            VersionTool::GIT => (
-                VersionTool::GIT,
-                log_git(p, &current_date),
-            ),
+            VersionTool::GIT => (VersionTool::GIT, log_git(p, &current_date)),
             VersionTool::SVN => (
                 VersionTool::SVN,
                 log_svn(&settings.svn_path, p, &current_date),
@@ -42,6 +38,7 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
                         VersionTool::GIT => binding
                             .to_string()
                             .split("\n")
+                            .filter(|s| !s.is_empty())
                             .map(|s| s.to_string())
                             .collect(),
                         VersionTool::NOTFOUND => vec![binding.to_string()],
@@ -51,9 +48,10 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
                 Err(err) => temp.push(err.to_string()),
             }
         }
-
+        println!("{:#?}", temp);
         temp
     });
+
     receiver.join().expect("error: get log")
 }
 
@@ -73,10 +71,7 @@ fn log_svn(
         .output()
 }
 
-fn log_git(
-    entrepot_path: &str,
-    current_date: &[String; 2],
-) -> Result<Output, Error> {
+fn log_git(entrepot_path: &str, current_date: &[String; 2]) -> Result<Output, Error> {
     //git log --pretty=format:"%s" --since={2023-02-16}
     let args = format!(
         "cd {} && git log --pretty=format:\"%s\" --since={} --until={}",
@@ -121,7 +116,7 @@ mod tests {
     fn test_git_log() {
         let current_date = ["2023-02-16".to_string(), "2023-02-16".to_string()];
         let entrepot_path = "/Users/gaoluo/projects/SmartC-Report";
-        let output = log_git( entrepot_path, &current_date);
+        let output = log_git(entrepot_path, &current_date);
         println!("{:?}", output);
     }
 }

@@ -7,7 +7,7 @@
                     <i i-logos-subversion />
                 </template>
                 <template #suffix>
-                    <Button @click="getPath('svn')" size="small">修改</Button>
+                    <Button @click="getVersionPath('svn')" size="small">修改</Button>
                 </template>
                 </Input>
                 <Input class="mt-2" v-model:value="gitPath" placeholder="git地址" readonly>
@@ -15,7 +15,7 @@
                     <i i-logos-git-icon />
                 </template>
                 <template #suffix>
-                    <Button @click="getPath('git')" size="small">修改</Button>
+                    <Button @click="getVersionPath('git')" size="small">修改</Button>
                 </template>
                 </Input>
                 <InputPassword class="mt-2" v-model:value="apiKey" placeholder="API Key">
@@ -58,16 +58,17 @@ import { Input, InputPassword, Button, message, Tabs, TabPane } from 'ant-design
 import { open } from '@tauri-apps/api/dialog';
 import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
 import { getPathList } from '@/utils';
+import { useStore, useStoreSetItem } from '@/store';
 
 const pathFile = ref('');
-const pathList = ref<string[]>([]);
+const pathList = ref(useStore().value.pathList)
 const activeKey = ref('0')
 const svnPath = ref('')
 const gitPath = ref('')
 const apiKey = ref('')
 const secretKey = ref('')
 
-async function getPath(type: string) {
+async function getVersionPath(type: string) {
     const selected = await open({
         multiple: false,
         directory: false,
@@ -135,10 +136,13 @@ const choseRepository = async () => {
             append: true,
         });
         pathList.value = await getPathList();
+        useStoreSetItem('pathList', pathList.value)
     }
 };
+
 const onDeletePath = (p: string) => {
     pathList.value = pathList.value.filter((e) => e !== p).map(item => item + '\n');
+    useStoreSetItem('pathList', pathList.value)
     writeTextFile('conf/app.conf', pathList.value.join(), {
         dir: BaseDirectory.AppConfig,
     })
