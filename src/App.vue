@@ -45,7 +45,10 @@ const onOpend = () => { openSetting.value = !openSetting.value }
   }">
     <div class="container">
       <OpenFiles />
-      <i i-line-md-close-to-menu-transition class="absolute right-4 top-1 text-20px" @click="onOpend" />
+      <span class="absolute right-4 top-1 text-20px b-black-500 b-2 b-rounded hover:b-black/30 cursor-pointer" >
+        <i i-line-md-close-to-menu-transition @click="onOpend" />
+      </span>
+
 
       <Modal class="bg-white pb-0" v-model:open="openSetting" width="100%" wrap-class-name="full-modal" :closable="false"
         :footer="null" @ok="onOpend">

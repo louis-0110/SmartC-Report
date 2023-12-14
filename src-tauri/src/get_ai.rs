@@ -45,12 +45,6 @@ pub async fn get_ai_text(c: String) -> Result<String, Box<dyn Error>> {
 }
 
 async fn get_ai<'a>(token: &'a str, content: String) -> Result<String, Box<dyn Error>> {
-    let template = format!(
-        "请你根据我的工作产出为我生成一份日报。
-    要求润色我的工作成果并为我制定明日工作计划。
-    结果需要以列表的形式呈现。
-    我的主要工作产出是：{content}"
-    );
     let client = reqwest::Client::new();
     let url = format!("https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/chatglm2_6b_32k?access_token={}",token);
     let resp = client
@@ -58,7 +52,7 @@ async fn get_ai<'a>(token: &'a str, content: String) -> Result<String, Box<dyn E
         .header("conetnt-type", "application/json")
         .body(
             json!({"messages" : [
-             {"role":"user","content": template}
+             {"role":"user","content": content}
             ]})
             .to_string(),
         )

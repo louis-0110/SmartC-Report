@@ -7,6 +7,6 @@ export async function savePath(
   return await invoke('save_path', { path: p, currentDate: d });
 }
 
-export async function getAiContent(value: string[]): Promise<string> {
-  return await invoke('get_ai_content', { c: value.join('\n') });
+export async function getAiContent(value: string): Promise<string> {
+  return await invoke('get_ai_content', { c: value});
 }

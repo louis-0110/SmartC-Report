@@ -48,7 +48,6 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
                 Err(err) => temp.push(err.to_string()),
             }
         }
-        println!("{:#?}", temp);
         temp
     });
 
@@ -97,7 +96,6 @@ fn is_git_or_svn(entrepot_path: &str) -> VersionTool {
     if let Ok(entries) = fs::read_dir(entrepot_path) {
         for entry in entries {
             if let Ok(entry) = entry {
-                // println!("{:?}", entry.file_name());
                 if entry.file_name().to_str().unwrap() == ".git" {
                     return VersionTool::GIT;
                 } else if entry.file_name().to_str().unwrap() == ".svn" {

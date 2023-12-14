@@ -13,7 +13,6 @@ export async function get_token(): Promise<any> {
       },
     }
   );
-  console.log(response);
   return response;
 }
 
