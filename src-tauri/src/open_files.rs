@@ -3,7 +3,7 @@ use std::thread;
 use crate::{get_ai::get_ai_text, get_commit_log::get_log};
 
 #[tauri::command]
-pub fn save_path(path: Vec<String>, current_date: String) -> Vec<String> {
+pub fn save_path(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
     // format!("Hello, {}! You've been greeted from Rust!", path)
     get_log(path, current_date)
 }

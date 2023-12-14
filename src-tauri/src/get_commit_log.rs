@@ -1,31 +1,51 @@
 // use chrono::{DateTime, Duration, Local};
 use crate::{parser_xml::parser, read_file::read_conf};
-use regex::Regex;
-use std::{process::Command, thread};
+// use regex::Regex;
+use std::{
+    fs,
+    io::{self, Error},
+    process::{Command, Output},
+    thread,
+};
 
-pub fn get_log(path: Vec<String>, current_date: String) -> Vec<String> {
-    let a = read_conf();
-    println!("{:?}", a);
-    // let local: DateTime<Local> = Local::now();
-    // let tomorrow = local + Duration::days(1);
-    // let current_date = format!(
-    //     "{{{}}}:{{{}}}",
-    //     local.format("%Y-%m-%d"),
-    //     tomorrow.format("%Y-%m-%d"),
-    // );
-    // svn log -r {2023-11-07}:{2023-12-10} | awk '/^r[0-9]+ \|/ {getline; getline; print}'
+pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
+    println!("{:?}",current_date);
+    let settings = read_conf();
+    // svn log --xml <PATH> -r {2023-11-07}:{2023-12-10}'
     let receiver = thread::spawn(move || {
-        let logs = path.iter().map(|p| {
-            Command::new("/usr/local/bin/svn")
-                .args(["log", "--xml", &p, "-r", &current_date])
-                .output()
+        let logs = path.iter().map(|p| match is_git_or_svn(p) {
+            VersionTool::GIT => (
+                VersionTool::GIT,
+                log_git(p, &current_date),
+            ),
+            VersionTool::SVN => (
+                VersionTool::SVN,
+                log_svn(&settings.svn_path, p, &current_date),
+            ),
+            VersionTool::NOTFOUND => (
+                VersionTool::NOTFOUND,
+                Result::Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    "not found version tool",
+                )),
+            ),
         });
+
         let mut temp: Vec<String> = Vec::new();
-        for item in logs.into_iter() {
+        for (vt, item) in logs.into_iter() {
             match item {
                 Ok(log) => {
                     let binding = String::from_utf8_lossy(&log.stdout);
-                    let mut log_text = parser(&binding);
+
+                    let mut log_text = match vt {
+                        VersionTool::SVN => parser(&binding),
+                        VersionTool::GIT => binding
+                            .to_string()
+                            .split("\n")
+                            .map(|s| s.to_string())
+                            .collect(),
+                        VersionTool::NOTFOUND => vec![binding.to_string()],
+                    };
                     temp.append(&mut log_text)
                 }
                 Err(err) => temp.push(err.to_string()),
@@ -34,19 +54,74 @@ pub fn get_log(path: Vec<String>, current_date: String) -> Vec<String> {
 
         temp
     });
-    receiver.join().expect("asd")
-
-    // println!("{:?}", commits_text);
+    receiver.join().expect("error: get log")
 }
 
-fn _parse_log<'a>(log: &'a str) -> &'a str {
-    let re = Regex::new(r"\n\n(.*?)\n").unwrap();
-    let mut commit_log = "";
-    if let Some(captures) = re.captures(log) {
-        // 提取匹配的文本
-        if let Some(matched_text) = captures.get(1).as_mut() {
-            commit_log = matched_text.as_str();
+fn log_svn(
+    command_path: &str,
+    entrepot_path: &str,
+    current_date: &[String; 2],
+) -> Result<Output, Error> {
+    Command::new(command_path)
+        .args([
+            "log",
+            "--xml",
+            entrepot_path,
+            "-r",
+            &format!("{{{}}}:{{{}}}", current_date[0], current_date[1]),
+        ])
+        .output()
+}
+
+fn log_git(
+    entrepot_path: &str,
+    current_date: &[String; 2],
+) -> Result<Output, Error> {
+    //git log --pretty=format:"%s" --since={2023-02-16}
+    let args = format!(
+        "cd {} && git log --pretty=format:\"%s\" --since={} --until={}",
+        entrepot_path, current_date[0], current_date[1]
+    );
+    //current_date,
+    if cfg!(windows) {
+        Command::new("cmd").arg("/C").arg(args).output()
+    } else {
+        Command::new("sh").arg("-c").arg(args).output()
+    }
+}
+
+// 判断当前路下是否存在.git 或 .svn 文件夹
+
+enum VersionTool {
+    GIT,
+    SVN,
+    NOTFOUND,
+}
+
+fn is_git_or_svn(entrepot_path: &str) -> VersionTool {
+    if let Ok(entries) = fs::read_dir(entrepot_path) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                // println!("{:?}", entry.file_name());
+                if entry.file_name().to_str().unwrap() == ".git" {
+                    return VersionTool::GIT;
+                } else if entry.file_name().to_str().unwrap() == ".svn" {
+                    return VersionTool::SVN;
+                }
+            }
         }
     }
-    commit_log
+    VersionTool::NOTFOUND
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_git_log() {
+        let current_date = ["2023-02-16".to_string(), "2023-02-16".to_string()];
+        let entrepot_path = "/Users/gaoluo/projects/SmartC-Report";
+        let output = log_git( entrepot_path, &current_date);
+        println!("{:?}", output);
+    }
 }

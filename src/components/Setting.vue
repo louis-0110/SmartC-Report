@@ -1,44 +1,67 @@
 <template>
     <div class="setting-container flex flex-col">
-        <Input v-model:value="svnPath" placeholder="svn地址" readonly>
-        <template #prefix>
-            <i i-logos-subversion />
-        </template>
-        <template #suffix>
-            <Button @click="getPath('svn')" size="small">修改</Button>
-        </template>
-        </Input>
-        <Input class="mt-2" v-model:value="gitPath" placeholder="git地址" readonly>
-        <template #prefix>
-            <i i-logos-git-icon />
-        </template>
-        <template #suffix>
-            <Button @click="getPath('git')" size="small">修改</Button>
-        </template>
-        </Input>
-        <InputPassword class="mt-2" v-model:value="apiKey" placeholder="API Key">
-        <template #prefix>
-            <i i-flat-color-icons-key />
-        </template>
-        </InputPassword>
-        <InputPassword class="mt-2" v-model:value="secretKey" placeholder="Secret Key">
-        <template #prefix>
-            <i i-flat-color-icons-data-encryption />
-        </template>
-        </InputPassword>
+        <Tabs v-model:activeKey="activeKey" type="card">
+            <TabPane key="0" tab="通用">
+                <Input v-model:value="svnPath" placeholder="svn地址" readonly>
+                <template #prefix>
+                    <i i-logos-subversion />
+                </template>
+                <template #suffix>
+                    <Button @click="getPath('svn')" size="small">修改</Button>
+                </template>
+                </Input>
+                <Input class="mt-2" v-model:value="gitPath" placeholder="git地址" readonly>
+                <template #prefix>
+                    <i i-logos-git-icon />
+                </template>
+                <template #suffix>
+                    <Button @click="getPath('git')" size="small">修改</Button>
+                </template>
+                </Input>
+                <InputPassword class="mt-2" v-model:value="apiKey" placeholder="API Key">
+                    <template #prefix>
+                        <i i-flat-color-icons-key />
+                    </template>
+                </InputPassword>
+                <InputPassword class="mt-2" v-model:value="secretKey" placeholder="Secret Key">
+                    <template #prefix>
+                        <i i-flat-color-icons-data-encryption />
+                    </template>
+                </InputPassword>
+                <Button @click="saveConfig" mt-2>
+                    <template #icon><i i-bi-save2 class="mr-2 " /></template>
+                    保存</Button>
+            </TabPane>
+            <TabPane key="1" tab="仓库">
+                <button text-violet b-violet flex items-center justify-center b-1 b-rounded p-1 class="hover:bg-violet/10"
+                    @click="choseRepository">
+                    <i i-bi-window-plus />
+                    选择本地仓库
+                </button>
 
-        <Button @click="saveConfig" mt-2>
-            <template #icon><i i-bi-save2 class="mr-2 " /></template>
-            保存</Button>
+                <ul mt-2 p-1 b-1 b-rounded shadow-gray shadow>
+                    <li class="flex   items-center bg-pink-100/10 hover:bg-blue-100/50 select-none cursor-default siblings-mt-1 b-1 b-lightBlue/50"
+                        v-for="item in pathList" :key="item">
+                        <i i-bi-hash text-xl></i>
+                        <span text-bluegray underline-violet underline font-500>{{ item }}</span>
+                        <i i-line-md-close-circle ml-a cursor-pointer @click="onDeletePath(item)" />
+                    </li>
+                </ul>
+            </TabPane>
+        </Tabs>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { Input,InputPassword, Button, message } from 'ant-design-vue'
+import { Input, InputPassword, Button, message, Tabs, TabPane } from 'ant-design-vue'
 import { open } from '@tauri-apps/api/dialog';
 import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
+import { getPathList } from '@/utils';
 
+const pathFile = ref('');
+const pathList = ref<string[]>([]);
+const activeKey = ref('0')
 const svnPath = ref('')
 const gitPath = ref('')
 const apiKey = ref('')
@@ -91,4 +114,35 @@ function saveConfig() {
         message.error('保存失败')
     })
 }
+
+
+
+const choseRepository = async () => {
+    const selected = await open({
+        multiple: false,
+        directory: true,
+    });
+    if (selected === null) {
+        // user cancelled the selection
+        pathFile.value = '';
+    } else {
+        // user selected a single file
+        pathFile.value = selected as string;
+        if (pathList.value.includes(pathFile.value)) return;
+
+        writeTextFile('conf/app.conf', pathFile.value + '\n', {
+            dir: BaseDirectory.AppConfig,
+            append: true,
+        });
+        pathList.value = await getPathList();
+    }
+};
+const onDeletePath = (p: string) => {
+    pathList.value = pathList.value.filter((e) => e !== p).map(item => item + '\n');
+    writeTextFile('conf/app.conf', pathList.value.join(), {
+        dir: BaseDirectory.AppConfig,
+    })
+}
+
+
 </script>

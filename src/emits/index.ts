@@ -1,6 +1,9 @@
 import { invoke } from '@tauri-apps/api/tauri';
 
-export async function savePath(p: string[], d: string): Promise<string[]> {
+export async function savePath(
+  p: string[],
+  d: [string, string]
+): Promise<string[]> {
   debugger;
   return await invoke('save_path', { path: p, currentDate: d });
 }
