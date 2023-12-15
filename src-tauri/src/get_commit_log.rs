@@ -4,6 +4,7 @@ use crate::{parser_xml::parser, read_file::read_conf};
 use std::{
     fs,
     io::{self, Error},
+    os::windows::process::CommandExt,
     process::{Command, Output},
     thread,
 };
@@ -54,12 +55,17 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
     receiver.join().expect("error: get log")
 }
 
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 fn log_svn(
     command_path: &str,
     entrepot_path: &str,
     current_date: &[String; 2],
 ) -> Result<Output, Error> {
-    Command::new(command_path)
+    let mut command = Command::new(command_path);
+    #[cfg(target_os = "windows")]
+    command.creation_flags(CREATE_NO_WINDOW);
+    command
         .args([
             "log",
             "--xml",
@@ -78,9 +84,15 @@ fn log_git(entrepot_path: &str, current_date: &[String; 2]) -> Result<Output, Er
     );
     //current_date,
     if cfg!(windows) {
-        Command::new("cmd").arg("/C").arg(args).output()
+        let mut command = Command::new("cmd");
+        #[cfg(target_os = "windows")]
+        command.creation_flags(CREATE_NO_WINDOW);
+        command.arg("/C").arg(args).output()
     } else {
-        Command::new("sh").arg("-c").arg(args).output()
+        let mut command = Command::new("sh");
+        #[cfg(target_os = "windows")]
+        command.creation_flags(CREATE_NO_WINDOW);
+        command.arg("-c").arg(args).output()
     }
 }
 
