@@ -82,7 +82,6 @@ const listenEenvt = async () => {
     result: string;
   }>('msg-stream', (event) => {
     ai_result.value += event.payload?.result.replace(/\n/g, '<br/>');
-    console.log(JSON.stringify(event.payload.result));
   });
 };
 const unlisten = listenEenvt();

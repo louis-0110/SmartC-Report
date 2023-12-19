@@ -41,7 +41,7 @@
 
                 <ul mt-2 p-1 b-1 b-rounded shadow-gray shadow>
                     <li class="flex   items-center bg-pink-100/10 hover:bg-blue-100/50 select-none cursor-default siblings-mt-1 b-1 b-lightBlue/50"
-                        v-for="item in pathList" :key="item">
+                        v-for="item in store.pathList" :key="item">
                         <i i-bi-hash text-xl></i>
                         <span text-bluegray underline-violet underline font-500>{{ item }}</span>
                         <i i-line-md-close-circle ml-a cursor-pointer @click="onDeletePath(item)" />
@@ -60,14 +60,17 @@ import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
 import { getPathList } from '@/utils';
 import { useStore, useStoreSetItem } from '@/store';
 
-const pathFile = ref('');
-const pathList = ref(useStore().value.pathList)
+const store = useStore()
 const activeKey = ref('0')
 const svnPath = ref('')
 const gitPath = ref('')
 const apiKey = ref('')
 const secretKey = ref('')
 
+/**
+ * 获取版本控制工具地址
+ * @param type 
+ */
 async function getVersionPath(type: string) {
     const selected = await open({
         multiple: false,
@@ -83,7 +86,11 @@ async function getVersionPath(type: string) {
     }
 }
 
+// 1. 获取本地配置
 readConfig()
+/**
+ * 读取本地配置文件
+ */
 function readConfig() {
     readTextFile('conf/settings.conf', {
         dir: BaseDirectory.AppConfig,
@@ -98,8 +105,10 @@ function readConfig() {
     })
 }
 
+/**
+ * 保存配置
+ */
 function saveConfig() {
-    // 保存配置
     const jsonString = JSON.stringify({
         svnPath: svnPath.value,
         gitPath: gitPath.value,
@@ -117,7 +126,9 @@ function saveConfig() {
 }
 
 
-
+/**
+ * 选择版本仓库地址
+ */
 const choseRepository = async () => {
     const selected = await open({
         multiple: false,
@@ -125,28 +136,24 @@ const choseRepository = async () => {
     });
     if (selected === null) {
         // user cancelled the selection
-        pathFile.value = '';
+        // pathFile.value = '';
+        return;
     } else {
-        // user selected a single file
-        pathFile.value = selected as string;
-        if (pathList.value.includes(pathFile.value)) return;
-
-        writeTextFile('conf/app.conf', pathFile.value + '\n', {
+        if (store.value.pathList.includes(selected as string)) return;
+       await writeTextFile('conf/app.conf', selected + '\n', {
             dir: BaseDirectory.AppConfig,
             append: true,
         });
-        pathList.value = await getPathList();
-        useStoreSetItem('pathList', pathList.value)
+        const pathList = await getPathList();
+        useStoreSetItem('pathList', pathList)
     }
 };
 
 const onDeletePath = (p: string) => {
-    pathList.value = pathList.value.filter((e) => e !== p).map(item => item + '\n');
-    useStoreSetItem('pathList', pathList.value)
-    writeTextFile('conf/app.conf', pathList.value.join(), {
+    const temp = store.value.pathList.filter((e) => e !== p).map(item => item);
+    useStoreSetItem('pathList', temp)
+    writeTextFile('conf/app.conf', temp.join("\n"), {
         dir: BaseDirectory.AppConfig,
     })
 }
-
-
 </script>
