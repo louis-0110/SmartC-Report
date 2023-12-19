@@ -1,6 +1,6 @@
-use std::thread;
-
 use crate::{get_ai::get_ai_text, get_commit_log::get_log};
+use std::thread;
+use tauri::Window;
 
 #[tauri::command]
 pub fn save_path(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
@@ -9,10 +9,7 @@ pub fn save_path(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
 }
 
 #[tauri::command]
-pub fn get_ai_content(c: String) -> String {
-    let resulter = thread::spawn(|| match get_ai_text(c) {
-        Ok(s) => s,
-        Err(e) => format!("Error: {}", e),
-    });
-    resulter.join().unwrap()
+pub async fn get_ai_content(window: Window, c: String) {
+    let join_handle = thread::spawn(|| async { get_ai_text(window, c).await });
+    let _ = join_handle.join().unwrap().await;
 }

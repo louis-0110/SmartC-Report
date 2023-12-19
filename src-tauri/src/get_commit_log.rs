@@ -4,7 +4,6 @@ use crate::{parser_xml::parser, read_file::read_conf};
 use std::{
     fs,
     io::{self, Error},
-    os::windows::process::CommandExt,
     process::{Command, Output},
     thread,
 };
