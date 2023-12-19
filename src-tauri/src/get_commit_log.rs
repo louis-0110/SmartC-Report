@@ -1,6 +1,6 @@
-// use chrono::{DateTime, Duration, Local};
 use crate::{parser_xml::parser, read_file::read_conf};
-// use regex::Regex;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 use std::{
     fs,
     io::{self, Error},

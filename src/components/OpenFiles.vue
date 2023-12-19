@@ -39,9 +39,26 @@
     auto-size
   ></Textarea>
 
-  <pre class="items-center b-1 p-2 shadow-sm">
-    {{ ai_result }}
-  </pre>
+  <div
+    class="items-center w-full b-1 p-2 h-480px overflow-y-auto shadow-sm break-all relative"
+  >
+    <button
+      class="hover:bg-violet/10"
+      b-rounded
+      text-violet
+      b-violet
+      text-12px
+      px-2
+      b-1
+      absolute
+      right-4
+      top-4
+      @click="ai_result = ''"
+    >
+      清空
+    </button>
+    <p v-html="ai_result"></p>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -61,12 +78,12 @@ const inputValue = ref(
   '请你根据我的工作产出为我生成一份日报。要求润色我的工作成果并为我制定明日工作计划。结果需要以列表的形式呈现。我的主要工作产出是:'
 );
 const listenEenvt = async () => {
-  return await listen('msg-stream', (event) => {
-    console.log(event.payload);
-    ai_result.value = event.payload as string;
+  return await listen<{
+    result: string;
+  }>('msg-stream', (event) => {
+    ai_result.value += event.payload?.result.replace(/\n/g, '<br/>');
+    console.log(JSON.stringify(event.payload.result));
   });
-
-  console.log('123');
 };
 const unlisten = listenEenvt();
 

@@ -29,7 +29,6 @@ struct AiResponse {
     is_end: bool,
     is_truncated: bool,
     result: String,
-    // ban_round: i32,
     need_clear_history: bool,
     usage: Usage,
 }
@@ -42,7 +41,6 @@ pub async fn get_ai_text(window: Window, c: String) -> Result<(), Box<dyn Error>
     let value = resp.text().await?;
     let obj = serde_json::from_str::<Auth>(&value)?;
     get_ai(window, obj.access_token.as_str(), c).await?;
-
     Ok(())
 }
 
@@ -64,12 +62,11 @@ async fn get_ai<'a>(window: Window, token: &'a str, content: String) -> Result<(
         .bytes_stream();
 
     while let Some(item) = resp.next().await {
-        let text = String::from_utf8(item.unwrap().into()).unwrap();
-        let text = text.get(6..).unwrap();
+        let text = String::from_utf8(item?.into())?;
+        let text = text.get(6..).ok_or("slice response text is Error")?;
 
         match serde_json::from_str::<AiResponse>(text) {
             Ok(s) => {
-                // println!("{:?}", s);
                 let _ = window.emit("msg-stream", &s);
             }
             Err(e) => {
