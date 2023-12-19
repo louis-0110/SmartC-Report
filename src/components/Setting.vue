@@ -152,7 +152,7 @@ const choseRepository = async () => {
 const onDeletePath = (p: string) => {
     const temp = store.value.pathList.filter((e) => e !== p).map(item => item);
     useStoreSetItem('pathList', temp)
-    writeTextFile('conf/app.conf', temp.join("\n"), {
+    writeTextFile('conf/app.conf', temp.join("\n")+ "\n", {
         dir: BaseDirectory.AppConfig,
     })
 }
