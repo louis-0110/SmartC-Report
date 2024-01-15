@@ -13,13 +13,13 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
     // svn log --xml <PATH> -r {2023-11-07}:{2023-12-10}'
     let receiver = thread::spawn(move || {
         let logs = path.iter().map(|p| match is_git_or_svn(p) {
-            VersionTool::GIT => (VersionTool::GIT, log_git(p, &current_date)),
-            VersionTool::SVN => (
-                VersionTool::SVN,
+            VersionTool::Git => (VersionTool::Git, log_git(p, &current_date)),
+            VersionTool::Svn => (
+                VersionTool::Svn,
                 log_svn(&settings.svn_path, p, &current_date),
             ),
-            VersionTool::NOTFOUND => (
-                VersionTool::NOTFOUND,
+            VersionTool::Notfound => (
+                VersionTool::Notfound,
                 Result::Err(io::Error::new(
                     io::ErrorKind::Other,
                     "not found version tool",
@@ -34,14 +34,14 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
                     let binding = String::from_utf8_lossy(&log.stdout);
 
                     let mut log_text = match vt {
-                        VersionTool::SVN => parser(&binding),
-                        VersionTool::GIT => binding
+                        VersionTool::Svn => parser(&binding),
+                        VersionTool::Git => binding
                             .to_string()
-                            .split("\n")
+                            .split('\n')
                             .filter(|s| !s.is_empty())
                             .map(|s| s.to_string())
                             .collect(),
-                        VersionTool::NOTFOUND => vec![binding.to_string()],
+                        VersionTool::Notfound => vec![binding.to_string()],
                     };
                     temp.append(&mut log_text)
                 }
@@ -56,6 +56,7 @@ pub fn get_log(path: Vec<String>, current_date: [String; 2]) -> Vec<String> {
 
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 fn log_svn(
     command_path: &str,
     entrepot_path: &str,
@@ -89,8 +90,8 @@ fn log_git(entrepot_path: &str, current_date: &[String; 2]) -> Result<Output, Er
         command.arg("/C").arg(args).output()
     } else {
         let mut command = Command::new("sh");
-        #[cfg(target_os = "windows")]
-        command.creation_flags(CREATE_NO_WINDOW);
+        // #[cfg(target_os = "windows")]
+        // command.creation_flags(CREATE_NO_WINDOW);
         command.arg("-c").arg(args).output()
     }
 }
@@ -98,24 +99,22 @@ fn log_git(entrepot_path: &str, current_date: &[String; 2]) -> Result<Output, Er
 // 判断当前路下是否存在.git 或 .svn 文件夹
 
 enum VersionTool {
-    GIT,
-    SVN,
-    NOTFOUND,
+    Git,
+    Svn,
+    Notfound,
 }
 
 fn is_git_or_svn(entrepot_path: &str) -> VersionTool {
     if let Ok(entries) = fs::read_dir(entrepot_path) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                if entry.file_name().to_str().unwrap() == ".git" {
-                    return VersionTool::GIT;
-                } else if entry.file_name().to_str().unwrap() == ".svn" {
-                    return VersionTool::SVN;
-                }
+        for entry in entries.flatten() {
+            if entry.file_name().to_str().unwrap() == ".git" {
+                return VersionTool::Git;
+            } else if entry.file_name().to_str().unwrap() == ".svn" {
+                return VersionTool::Svn;
             }
         }
     }
-    VersionTool::NOTFOUND
+    VersionTool::Notfound
 }
 
 #[cfg(test)]

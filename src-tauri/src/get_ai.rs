@@ -44,7 +44,7 @@ pub async fn get_ai_text(window: Window, c: String) -> Result<(), Box<dyn Error>
     Ok(())
 }
 
-async fn get_ai<'a>(window: Window, token: &'a str, content: String) -> Result<(), Box<dyn Error>> {
+async fn get_ai(window: Window, token: &str, content: String) -> Result<(), Box<dyn Error>> {
     let client = reqwest::Client::new();
 
     let url = format!("https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/chatglm2_6b_32k?access_token={}",token);
