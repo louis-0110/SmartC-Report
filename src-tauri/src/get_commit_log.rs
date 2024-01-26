@@ -112,6 +112,7 @@ fn log_git(entrepot_path: &str, current_date: &[String; 2]) -> Result<Output, Er
 
     if cfg!(windows) {
         command = Command::new("powershell");
+        #[cfg(target_os = "windows")]
         command.creation_flags(CREATE_NO_WINDOW);
     } else {
         command = Command::new("sh");
