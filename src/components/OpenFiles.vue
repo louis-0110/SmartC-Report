@@ -1,60 +1,20 @@
 <template>
   <div class="flex items-center">
-    <button
-      class="hover:bg-violet/10"
-      b-rounded
-      text-violet
-      b-violet
-      b-1
-      p-1
-      mr-2
-      @click="get_ai_log"
-    >
+    <button class="hover:bg-violet/10" b-rounded text-violet b-violet b-1 p-1 mr-2 @click="get_ai_log">
       获取日志
       <i v-if="isLoadingLog" i-line-md-loading-twotone-loop />
     </button>
-    <button
-      class="hover:bg-violet/10"
-      b-rounded
-      text-violet
-      b-violet
-      b-1
-      p-1
-      mr-2
-      @click="create_report"
-    >
+    <button class="hover:bg-violet/10" b-rounded text-violet b-violet b-1 p-1 mr-2 @click="create_report">
       生成日报
       <i v-if="isLoadingReprot" i-line-md-loading-twotone-loop />
     </button>
-    <RangePicker
-      v-model:value="dateTime"
-      valueFormat="YYYY-MM-DD"
-      format="YYYY-MM-DD"
-      size="small"
-    />
+    <RangePicker v-model:value="dateTime" valueFormat="YYYY-MM-DD" format="YYYY-MM-DD" size="small" />
   </div>
-  <Textarea
-    class="my-1 b-1 p-2"
-    v-model:value="inputValue"
-    auto-size
-  ></Textarea>
+  <Textarea class="my-1 b-1 p-2" v-model:value="inputValue" auto-size></Textarea>
 
-  <div
-    class="items-center w-full b-1 p-2 h-480px overflow-y-auto shadow-sm break-all relative"
-  >
-    <button
-      class="hover:bg-violet/10"
-      b-rounded
-      text-violet
-      b-violet
-      text-12px
-      px-2
-      b-1
-      absolute
-      right-4
-      top-4
-      @click="ai_result = ''"
-    >
+  <div class="items-center w-full b-1 p-2 h-480px overflow-y-auto shadow-sm break-all relative">
+    <button class="hover:bg-violet/10" b-rounded text-violet b-violet text-12px px-2 b-1 absolute right-4 top-4
+      @click="ai_result = ''">
       清空
     </button>
     <p v-html="ai_result"></p>
@@ -66,7 +26,7 @@ import dayjs from 'dayjs';
 import { ref, onBeforeUnmount } from 'vue';
 import { getAiContent, savePath } from '@/emits/index';
 import { listen } from '@tauri-apps/api/event';
-import { RangePicker } from 'ant-design-vue';
+import { RangePicker, message } from 'ant-design-vue';
 import { Textarea } from 'ant-design-vue';
 import { useStore } from '@/store';
 
@@ -109,4 +69,7 @@ async function create_report() {
   await getAiContent(inputValue.value);
   isLoadingReprot.value = false;
 }
+listen<string>('error', (event) => {
+  message.error(event.payload);
+})
 </script>

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::error::Error;
 use tauri::Window;
+
 #[derive(Serialize, Deserialize, Debug)]
 struct Auth {
     refresh_token: String,
@@ -35,16 +36,16 @@ struct AiResponse {
 
 pub async fn get_ai_text(window: Window, c: String) -> Result<(), Box<dyn Error>> {
     let client = reqwest::Client::new();
-    let conf = read_conf();
+    let conf = read_conf(&window);
     let path: String = format!("https://aip.baidubce.com/oauth/2.0/token?client_id={}&client_secret={}&grant_type=client_credentials",conf.api_key,conf.secret_key);
     let resp = client.post(path).send().await?;
     let value = resp.text().await?;
     let obj = serde_json::from_str::<Auth>(&value)?;
-    get_ai(window, obj.access_token.as_str(), c).await?;
+    get_ai(&window, obj.access_token.as_str(), c).await?;
     Ok(())
 }
 
-async fn get_ai(window: Window, token: &str, content: String) -> Result<(), Box<dyn Error>> {
+async fn get_ai(window: &Window, token: &str, content: String) -> Result<(), Box<dyn Error>> {
     let client = reqwest::Client::new();
 
     let url = format!("https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/chatglm2_6b_32k?access_token={}",token);
@@ -70,7 +71,7 @@ async fn get_ai(window: Window, token: &str, content: String) -> Result<(), Box<
                 let _ = window.emit("msg-stream", &s);
             }
             Err(e) => {
-                println!("{}", e);
+                window.emit("error", e.to_string()).unwrap();
             }
         }
     }

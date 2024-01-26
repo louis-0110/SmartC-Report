@@ -10,7 +10,6 @@ import Setting from './components/Setting.vue';
 import { getPathList } from './utils';
 import { BaseDirectory, createDir, writeTextFile } from '@tauri-apps/api/fs';
 import { useStoreSetItem } from './store';
-
 dayjs.locale('zh-cn');
 
 let isDarkMode = ref(window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -37,6 +36,9 @@ const onOpend = () => { openSetting.value = !openSetting.value }
       });
     }
   })();
+
+
+
 </script>
 
 <template>
@@ -45,7 +47,7 @@ const onOpend = () => { openSetting.value = !openSetting.value }
   }">
     <div class="container">
       <OpenFiles />
-      <span class="absolute right-4 top-1 text-20px b-black-500 b-2 b-rounded hover:b-black/30 cursor-pointer" >
+      <span class="absolute right-4 top-1 text-20px b-black-500 b-2 b-rounded hover:b-black/30 cursor-pointer">
         <i i-line-md-close-to-menu-transition @click="onOpend" />
       </span>
 
